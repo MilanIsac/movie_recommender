@@ -1,5 +1,5 @@
 .env
 recommendations/venv/
-recommendations/movies.csv
+recommendation/movies.csv
 backend/node_modules/
 node_modules/
