@@ -7,7 +7,7 @@ import numpy as np
 import json
 
 # Load movies data
-movies = pd.read_csv("recommendation/movies.csv").fillna("")
+movies = pd.read_csv("movies.csv").fillna("")
 movies['metadata'] = movies['genres'] + ' ' + movies['title'] + ' ' + movies['tagline']
 
 # Initialize TF-IDF Vectorizer
@@ -109,7 +109,3 @@ def get_recommendations(name: str):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001, reload=True)
-
-
-
-
