@@ -6,8 +6,6 @@ const router = express.Router();
 
 const FASTAPI_URL = process.env.FASTAPI_URL;
 
-
-
 // get movies from db
 router.get("/", async (req, res) => {
     try {

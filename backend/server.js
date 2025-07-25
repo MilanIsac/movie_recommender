@@ -11,8 +11,10 @@ const app = express()
 app.use(cors({
     origin: "*"
 }))
+
 app.use(express.json())
 app.use(express.static(path.join(__dirname, "../frontend")))
+
 app.use("/api/movies/", movieRoutes);
 
 const PORT = process.env.PORT || 5000;
