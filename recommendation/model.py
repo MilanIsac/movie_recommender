@@ -17,6 +17,7 @@ similarity_matrix = cosine_similarity(tfidf_matrix)
 
 
 def recommend(name, top_n=5):
+    name = name.capitalize()
     if name not in movies['title'].values:
         raise HTTPException(status_code=404, detail="Movie not found")
 

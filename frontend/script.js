@@ -35,6 +35,9 @@ function displayResults(movies) {
         // console.log(typeof movie.genres);
         // console.log("Parsed Genres:", genreNames);
 
+        const response = await fetch(`http://localhost:8001/recommend/${encodeURIComponent(movie_name)}`);
+        const movie_title = 
+
         movieElement.innerHTML = `
             <h3>${movie.title}</h3>
             <p><strong>Genres:</strong> ${genreNames}</p>
