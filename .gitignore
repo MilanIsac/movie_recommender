@@ -2,7 +2,3 @@ backend/node_modules/
 .env
 .vscode/
 recommendation/venv/
-
-
-git rm -r --cached C:\Users\Lenovo\Trip_assistant
-
