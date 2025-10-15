@@ -6,7 +6,13 @@ async function getRecommendations() {
     }
 
     try {
-        const response = await fetch(`http://localhost:8001/api/recommend/${encodeURIComponent(movie_name)}`);
+        const response = await fetch(`http://localhost:8000/api/recommend/${encodeURIComponent(movie_name)}`);
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            alert(errorData.detail || "Unknown error occurred");
+            return;
+        }
         const data = await response.json();
         displayResults(data.recommendations);
     } catch (error) {
@@ -35,7 +41,7 @@ function displayResults(movies) {
         movieElement.innerHTML = `
             <h3>${movie.title}</h3>
             <div style="display: flex; justify-content: center;">
-                <img src="${movie.poster_full || "https://via.placeholder.com/200x300?text=No+Image"}" 
+                <img src="${movie.poster_full || "https://via.placehold.co/200x300?text=No+Image"}" 
                      alt="${movie.title}" style="width:200px;" />
             </div>
             <p><strong>Genres:</strong> ${genreNames}</p>

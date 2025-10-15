@@ -63,8 +63,8 @@ def fetch_movies(endpoint, pages=5, delay=0.5):
             print(f"Error fetching page {page}: {e}")
     return inserted_count
 
-for movie in collection.find().limit(5):
-    print(movie)
+# for movie in collection.find().limit(5):
+#     print(movie)
 
 
 inserted_total = 0
