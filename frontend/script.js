@@ -14,6 +14,7 @@ async function getRecommendations() {
             return;
         }
         const data = await response.json();
+        console.log("Received data: ", data);
         displayResults(data.recommendations);
     } catch (error) {
         console.log("Error fetching the recommendations: ", error);
@@ -23,7 +24,7 @@ async function getRecommendations() {
 
 function displayResults(movies) {
     const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = ""; // Clear previous results
+    resultsDiv.innerHTML = ""; 
 
     if (!movies || movies.length === 0) {
         resultsDiv.innerHTML = "<p>No recommendations found</p>";
@@ -41,7 +42,7 @@ function displayResults(movies) {
         movieElement.innerHTML = `
             <h3>${movie.title}</h3>
             <div style="display: flex; justify-content: center;">
-                <img src="${movie.poster_full || "https://via.placehold.co/200x300?text=No+Image"}" 
+                <img src="${movie.poster_path || "https://via.placehold.co/200x300?text=No+Image"}" 
                      alt="${movie.title}" style="width:200px;" />
             </div>
             <p><strong>Genres:</strong> ${genreNames}</p>

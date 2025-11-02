@@ -12,12 +12,10 @@ API_KEY = os.getenv("TMDB_API_KEY")
 if not API_KEY:
     raise ValueError("TMDB_API_KEY environment variable is not set")
 
-# MongoDB connection
 client = MongoClient(os.getenv("MONGO_URI"))
 db = client[os.getenv("MONGO_DB")]
 collection = db[os.getenv("MONGO_COLLECTION")]
 
-# Setup requests session with retries
 session = requests.Session()
 retry = Retry(
     total=5,  # total retry attempts
