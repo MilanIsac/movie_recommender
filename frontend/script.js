@@ -24,7 +24,7 @@ async function getRecommendations() {
 
 function displayResults(movies) {
     const resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = ""; 
+    resultsDiv.innerHTML = "";
 
     if (!movies || movies.length === 0) {
         resultsDiv.innerHTML = "<p>No recommendations found</p>";
@@ -60,3 +60,30 @@ document.getElementById("movie_name").addEventListener("keydown", function (even
         getRecommendations();
     }
 });
+
+async function refresh() {
+    const refreshBtn = document.getElementById('refresh-btn');
+    refreshBtn.disabled = true;
+    refreshBtn.innerText = 'Refreshing...';
+
+    try {
+        let response = await fetch('http://localhost:8000/api/refresh', { method: 'POST' });
+        if (!response.ok) {
+            throw new Error('Error occurred during refresh:', error);
+        }
+        let fetchData = await response.json();
+
+        response = await fetch('http://localhost:8000/api/run-training', { method: 'POST' });
+        if (!response.ok) {
+            throw new Error('Error occurred during training:', error);
+        }
+        let trainData = await response.json();
+
+    } catch (error) {
+        console.error('Error occurred during refresh:', error);
+    }
+    finally {
+        refreshBtn.disabled = false;
+        refreshBtn.innerText = 'Refresh';
+    }
+}

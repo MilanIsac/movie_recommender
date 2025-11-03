@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
@@ -6,6 +6,7 @@ import pandas as pd
 import pickle
 from fastapi.middleware.cors import CORSMiddleware
 from difflib import get_close_matches
+import time
 
 load_dotenv()
 
@@ -35,6 +36,17 @@ try:
 except Exception as e:
     print("Error loading model:", e)
     raise e
+
+
+def run_scraping():
+    from web_scraping import fetch_movies
+    fetch_movies("popular", pages=5)
+    print("Web scraping completed!")
+    
+
+def run_model_training():
+    import model
+    print('Model training completed')
 
 
 @app.get("/")
@@ -80,3 +92,24 @@ async def recommend(title: str):
             results.append({"title": t, "overview": "Not available in DB"})
 
     return {"base_movie": title, "recommendations": results}
+
+
+@app.post('/api/refresh')
+async def refresh(background_tasks : BackgroundTasks):
+    try:
+        background_tasks.add_task(run_scraping)
+        return { 'msg' : 'fetching data started' }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail='Error fetching data')
+    
+    
+@app.post('/api/run-training')
+async def run_training(background_tasks: BackgroundTasks):
+    try:
+        background_tasks.add_task(run_model_training)
+        return { 'msg' : 'model training started' }
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail='Error training model')
+    
