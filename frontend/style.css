@@ -1,6 +1,6 @@
 body {
-    font-family: 'Segoe UI', 'Montserrat', Arial, sans-serif;
-    background: linear-gradient(135deg, #1a2a6c 30%, #b21f1f 90%);
+    font-family: 'Courier New', Courier, monospace;
+    background: linear-gradient(135deg, #0a0a0a 40%, #000000 100%);
     color: #f5f6fa;
     min-height: 100vh;
     margin: 0;
@@ -9,10 +9,10 @@ body {
 .container {
     max-width: 900px;
     margin: 50px auto;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(131, 149, 130, 0.7);
     padding: 40px;
     border-radius: 12px;
-    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.8);
+    box-shadow: 0px 4px 15px rgba(48, 54, 49, 0.8);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -26,8 +26,8 @@ h1 {
     margin-bottom: 20px;
     font-weight: 700;
     letter-spacing: 1.2px;
-    color: #ffffff;
-    text-shadow: 0 2px 16px #00e6ff49;
+    color: #000000;
+    text-shadow: 0 2px 16px #ffffff49;
     font-size: 2.5rem;
 }
 
@@ -38,8 +38,8 @@ h1 {
     width: 100%;
 }
 
-input[type="text"] {
-    padding: 15px 20px;
+input {
+    padding: 15px 10px;
     width: 100%;
     max-width: 500px;
     border: 2px solid #222;
@@ -52,13 +52,13 @@ input[type="text"] {
     transition: border 0.3s ease;
 }
 
-input[type="text"]:focus {
-    border: 2px solid #00e6ff;
+input:focus {
+    border: 2px solid #6aa3a9;
 }
 
 button {
     padding: 12px 22px;
-    background: linear-gradient(90deg, #00b894, #f069f0);
+    background: linear-gradient(90deg, #0013e6, #3c00ff);
     color: #fff;
     border: none;
     border-radius: 10px;
@@ -70,7 +70,6 @@ button {
 }
 
 button:hover {
-    background: linear-gradient(90deg, #d057d0, #00b894);
     transform: scale(1.05);
 }
 
@@ -84,8 +83,8 @@ button:hover {
 }
 
 .movie-card {
-    background: rgba(0, 0, 0, 0.85);
-    color: #fafbff;
+    background: rgb(70, 63, 63);
+    color: #ffffff;
     padding: 20px;
     border-radius: 12px;
     box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.4);
@@ -123,13 +122,9 @@ button:hover {
     display: block;
 }
 
-.genres {
-    color: #aad6ff;
-    font-weight: 500;
-}
 
 #refresh-btn {
-    padding: 12px 20px;
+    padding: 10px 10px;
     background: linear-gradient(90deg, #333, #444);
     color: #fff;
     border: none;
@@ -137,10 +132,10 @@ button:hover {
     font-size: 1rem;
     cursor: pointer;
     transition: background 0.3s, transform 0.3s;
+    max-width: 100px;
 }
 
 #refresh-btn:hover {
-    background: linear-gradient(90deg, #444, #333);
     transform: scale(1.05);
 }
 
@@ -151,22 +146,4 @@ button:hover {
     top: 20px;
     right: 20px;
     width: 100%;
-}
-
-@media (max-width: 600px) {
-    .container {
-        padding: 20px;
-    }
-
-    h1 {
-        font-size: 2rem;
-    }
-
-    input[type="text"], button {
-        width: 90%;
-    }
-
-    #results {
-        padding: 0 10px;
-    }
 }
