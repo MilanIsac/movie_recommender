@@ -1,47 +1,26 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Recommendation</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
-        <h2>Movie Recommendation System</h2>
-        <input type="text" id="movie_name" placeholder="Enter movie name">
-        <button onclick="getRecommendations()">Get Recommendation</button>
-    </div>
-    <div id="results"></div>
-
-    <script src="script.js" defer></script>
-</body>
-</html> -->
-
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Movie Recommendation System</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Recommendation System</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="btn-container">
-        <button id="refresh-btn" onclick="refresh()">Refresh</button>
-    </div>
-    <div class="container">
-        <div class="input-conatiner">
-            <h1>Movie Recommendation System</h1>
-            <input type="text" id="movie_name" placeholder="Type a movie name...">
-            <button onclick=getRecommendations() class="btn">Get Recommendation</button>
-        </div>
-    </div>
-    <div id="results"></div>
-    <br>
-    <script src="script.js"></script>
-</body>
+  <header class="header">
+    <button id="refresh-btn" onclick="refresh()">Refresh</button>
+  </header>
 
+  <main class="container">
+    <div class="input-container">
+      <h1>Movie Recommendation System</h1>
+      <input type="text" id="movie_name" placeholder="Type a movie name..." />
+      <button onclick="getRecommendations()" class="btn">Get Recommendation</button>
+    </div>
+  </main>
+
+  <section id="results"></section>
+
+  <script src="script.js"></script>
+</body>
 </html>
