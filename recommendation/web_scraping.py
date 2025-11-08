@@ -18,9 +18,9 @@ collection = db[os.getenv("MONGO_COLLECTION")]
 
 session = requests.Session()
 retry = Retry(
-    total=5,  # total retry attempts
-    backoff_factor=1,  # wait 1s, 2s, 4s...
-    status_forcelist=[500, 502, 503, 504]  # retry on these HTTP codes
+    total=5,
+    backoff_factor=1,
+    status_forcelist=[500, 502, 503, 504]
 )
 adapter = HTTPAdapter(max_retries=retry)
 session.mount("http://", adapter)
@@ -61,28 +61,13 @@ def fetch_movies(endpoint, pages=5, delay=0.5):
             print(f"Error fetching page {page}: {e}")
     return inserted_count
 
-# for movie in collection.find().limit(5):
-#     print(movie)
+if __name__ == "__main__":
+    inserted_total = 0
+    inserted_total += fetch_movies("popular", pages=10)
+    inserted_total += fetch_movies("now_playing", pages=10)
+    inserted_total += fetch_movies("upcoming", pages=10)
 
+    print(f"Inserted {inserted_total} new movies into MongoDB")
+    print("Movies in DB:", collection.count_documents({}))
+    latest_movies = list(collection.find().sort("release_date", -1).limit(5))
 
-inserted_total = 0
-inserted_total += fetch_movies("popular", pages=10)
-inserted_total += fetch_movies("now_playing", pages=10)
-inserted_total += fetch_movies("upcoming", pages=10)
-
-print(f"Inserted {inserted_total} new movies into MongoDB")
-
-
-
-# # Connect to your MongoDB Atlas cluster
-# client = MongoClient(os.getenv("MONGO_URI"))
-# db = client[os.getenv("MONGO_DB")]
-# collection = db[os.getenv("MONGO_COLLECTION")]
-
-# # Fetch and print the first 5 movies
-# for movie in collection.find().limit(5):
-#     print(f"Title: {movie.get('title')}")
-#     print(f"Overview: {movie.get('overview')}")
-#     print(f"Release Date: {movie.get('release_date')}")
-#     print(f"Vote Average: {movie.get('vote_average')}")
-#     print("-" * 50)

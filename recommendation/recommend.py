@@ -6,8 +6,10 @@ similarity_matrix = pickle.load(open("model/similarity.pkl", "rb"))
 movies = pd.read_csv("model/movie_index.csv")
 
 def recommend(title, top_n=5):
+    title = title.strip().lower()
+    movies["title_lower"] = movies["title"].str.strip().str.lower()
     if title not in movies["title"].values:
-        return f"Movie '{title}' not found."
+        return {"error": f"Movie '{title}' not found."}
     
     idx = movies[movies["title"] == title].index[0]
     sim_scores = list(enumerate(similarity_matrix[idx]))

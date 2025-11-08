@@ -1,3 +1,5 @@
+const BASE_URL = 'http://localhost:5000';
+
 async function getRecommendations() {
     const movie_name = document.getElementById("movie_name").value;
     if (!movie_name) {
@@ -6,17 +8,23 @@ async function getRecommendations() {
     }
 
     try {
-        const response = await fetch(`http://localhost:8000/api/recommend/${encodeURIComponent(movie_name)}`);
+        const response = await fetch(`${BASE_URL}/api/recommend/${encodeURIComponent(movie_name)}`);
+        const data = await response.json();
 
         if (!response.ok) {
-            const errorData = await response.json();
-            alert(errorData.detail || "Unknown error occurred");
+            alert(data.error || data.detail || "Unknown error occurred.");
             return;
         }
-        const data = await response.json();
+
+        if (data.error) {
+            alert(`${data.error}${data.suggestions ? `\nDid you mean: ${data.suggestions.join(", ")}?` : ""}`);
+            return;
+        }
+
         console.log("Received data: ", data);
         displayResults(data.recommendations);
-    } catch (error) {
+    }
+    catch (error) {
         console.log("Error fetching the recommendations: ", error);
         alert("Failed to fetch recommendations");
     }
@@ -42,7 +50,7 @@ function displayResults(movies) {
         movieElement.innerHTML = `
             <h3>${movie.title}</h3>
             <div style="display: flex; justify-content: center;">
-                <img src="${movie.poster_path || "https://via.placehold.co/200x300?text=No+Image"}" 
+                <img src="${movie.poster_path || "https://placehold.co/200x300?text=No+Image"}" 
                      alt="${movie.title}" style="width:200px;" />
             </div>
             <p><strong>Genres:</strong> ${genreNames}</p>
@@ -67,19 +75,20 @@ async function refresh() {
     refreshBtn.innerText = 'Refreshing...';
 
     try {
-        let response = await fetch('http://localhost:8000/api/refresh', { method: 'POST' });
+        let response = await fetch(`${BASE_URL}/api/refresh`, { method: 'POST' });
         if (!response.ok) {
-            throw new Error('Error occurred during refresh:', error);
+            throw new Error('Error occurred during refresh:');
         }
         let fetchData = await response.json();
 
-        response = await fetch('http://localhost:8000/api/run-training', { method: 'POST' });
+        response = await fetch(`${BASE_URL}/api/run-training`, { method: 'POST' });
         if (!response.ok) {
-            throw new Error('Error occurred during training:', error);
+            throw new Error('Error occurred during training:');
         }
         let trainData = await response.json();
 
-    } catch (error) {
+    }
+    catch (error) {
         console.error('Error occurred during refresh:', error);
     }
     finally {

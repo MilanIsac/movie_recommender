@@ -6,7 +6,6 @@ from sklearn.metrics.pairwise import cosine_similarity
 import pickle
 from dotenv import load_dotenv
 
-# Load  
 load_dotenv()
 
 client = MongoClient(os.getenv("MONGO_URI"))
@@ -31,6 +30,10 @@ def combine_features(row):
 df["combined"] = df.apply(combine_features, axis=1)
 
 df = df.dropna(subset=["combined"])
+
+print("Movies loaded for training:", len(df))
+print(df.tail()[["title", "release_date"]])
+
 
 print("Vectorizing text...")
 vectorizer = TfidfVectorizer(stop_words="english", max_features=5000)

@@ -6,25 +6,44 @@ const router = express.Router();
 
 const FASTAPI_URL = process.env.FASTAPI_URL;
 
-// get movies from db
 router.get("/", async (req, res) => {
-    try {
-        const movie = await movies.find();
-        res.json(movie);
-    } catch (error) {
-        res.status(500).json({ error: "Database Error" });
-    }
+  try {
+    const allMovies = await movies.find();
+    res.json(allMovies);
+  } catch (error) {
+    res.status(500).json({ error: "Database Error" });
+  }
 });
-// console.log("abcde");
-// get recommendations from fastapi
+
 router.get("/recommend/:name", async (req, res) => {
-    try {
-        const { name } = req.params;
-        const response = await axios.get(`${FASTAPI_URL}/recommend/${encodeURIComponent(name)}`);
-        res.json(response.data);
-    } catch (error) {
-        res.status(500).json({ error: "Error fetching recommendations" });
-    }
+  try {
+    const { name } = req.params;
+    const response = await axios.get(`${FASTAPI_URL}/recommend/${encodeURIComponent(name)}`);
+    res.json(response.data);
+  } catch (error) {
+    console.error("Error fetching recommendations:", error.message);
+    res.status(500).json({ error: "FastAPI recommendation failed" });
+  }
+});
+
+router.post("/refresh", async (req, res) => {
+  try {
+    const response = await axios.post(`${FASTAPI_URL}/refresh`);
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error calling FastAPI refresh:", err.message);
+    res.status(500).json({ error: "FastAPI refresh failed" });
+  }
+});
+
+router.post("/run-training", async (req, res) => {
+  try {
+    const response = await axios.post(`${FASTAPI_URL}/run-training`);
+    res.json(response.data);
+  } catch (err) {
+    console.error("Error calling FastAPI training:", err.message);
+    res.status(500).json({ error: "FastAPI training failed" });
+  }
 });
 
 module.exports = router;

@@ -57,19 +57,18 @@ async def home():
 @app.get("/api/recommend/{title}")
 async def recommend(title: str):
     title = title.strip().lower()
+    titles = movie_index["title"].tolist()
 
-    if title not in movie_index["title"].values:
-        suggestions = get_close_matches(
-            title, movie_index["title"].tolist(), n=3, cutoff=0.5
-        )
+    if title not in titles:
+        suggestions = get_close_matches(title, titles, n=3, cutoff=0.4)
         if suggestions:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Movie '{title}' not found. Did you mean: {', '.join(suggestions)}?",
-            )
+            best_match = suggestions[0]
+            print(f"Using closest match: {best_match}")
+            title = best_match
         else:
             raise HTTPException(
-                status_code=404, detail=f"Movie '{title}' not found in dataset"
+                status_code=404,
+                detail=f"Movie '{title}' not found in dataset."
             )
 
     idx = movie_index[movie_index["title"] == title].index[0]
@@ -85,6 +84,9 @@ async def recommend(title: str):
             {"title": {"$regex": f"^{t}$", "$options": "i"}}, {"_id": 0}
         )
         if movie_doc:
+            poster = movie_doc.get("poster_path")
+            if poster and not poster.startswith("http"):
+                movie_doc["poster_path"] = f"https://image.tmdb.org/t/p/w500{poster}"
             results.append(movie_doc)
         found_titles = {m["title"].lower() for m in results}
     for t in similar_movies:
@@ -107,9 +109,23 @@ async def refresh(background_tasks : BackgroundTasks):
 @app.post('/api/run-training')
 async def run_training(background_tasks: BackgroundTasks):
     try:
+        import model
+        time.sleep(2)
         background_tasks.add_task(run_model_training)
-        return { 'msg' : 'model training started' }
+        background_tasks.add_task(model_reload)
+        return { 'msg' : 'model training and reload started' }
     
     except Exception as e:
         raise HTTPException(status_code=500, detail='Error training model')
     
+    
+async def model_reload():
+    global vectorizer, similarity, movie_index
+    try:
+        vectorizer = pickle.load(open("model/vectorizer.pkl", "rb"))
+        similarity = pickle.load(open("model/similarity.pkl", "rb"))
+        movie_index = pd.read_csv("model/movie_index.csv")
+        movie_index["title"] = movie_index["title"].str.strip().str.lower()
+        print("Model reloaded successfully")
+    except Exception as e:
+        print("Error reloading model:", e)
