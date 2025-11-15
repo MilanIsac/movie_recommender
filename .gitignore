@@ -2,3 +2,6 @@ backend/node_modules/
 .env
 .vscode/
 recommendation/venv/
+recommendation/__pycache__/
+recommendation/package/
+recommendation/recomendation.zip

@@ -7,6 +7,7 @@ import pickle
 from fastapi.middleware.cors import CORSMiddleware
 from difflib import get_close_matches
 import time
+from mangum import Mangum
 
 load_dotenv()
 
@@ -129,3 +130,6 @@ async def model_reload():
         print("Model reloaded successfully")
     except Exception as e:
         print("Error reloading model:", e)
+        
+        
+handler = Mangum(app)
