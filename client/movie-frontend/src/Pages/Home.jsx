@@ -7,8 +7,8 @@ const Home = () => {
     const [input, setInput] = useState('');
 
     const addMovie = () => {
-        if(input === '') return;
-        setMovie([ ...movie, input ]);
+        if (input === '') return;
+        setMovie([...movie, input]);
         setInput('');
     }
 
@@ -37,28 +37,30 @@ const Home = () => {
                         {movie.map((movie, index) => (
                             <div className='movie' key={index}>
                                 {movie}
-                                <span className='remove-btn' onClick={() => removeMovie(index)}>x</span>
+                                <span className='remove-btn' onClick={() => removeMovie(index)}>✖</span>
                             </div>
                         ))}
 
-                    <input 
-                    type="text" 
-                    placeholder='Type movies you liked' 
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    />
+                        <input
+                            type="text"
+                            placeholder='Type movies you liked'
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                        />
                     </div>
                     <button className='add-btn' onClick={addMovie}>+ Add</button>
                 </div>
 
                 {/* Submit btn */}
+            </div>
+            <div className='container'>
                 <button className='surprise-btn'>Surprise Me</button>
 
-            </div>
+                {/* Background image */}
+                <div className='img'>
+                    <img src="/pic1.png" alt="Pic" />
+                </div>
 
-            {/* Background image */}
-            <div className='img'>
-                <img src="/pic1.png" alt="Pic" />
             </div>
         </>
     )
