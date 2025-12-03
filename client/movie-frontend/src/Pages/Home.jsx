@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
 import '../styles/home.css'
+import MovieCard from '../Components/MovieCard';
 
 const Home = () => {
 
     const [movie, setMovie] = useState([]);
     const [input, setInput] = useState('');
+    const [results, setResults] = useState([]);
+
+    const BASE_URL = import.meta.env.VITE_BASE_URL;
+
 
     const addMovie = () => {
         if (input === '') return;
@@ -15,6 +20,20 @@ const Home = () => {
     const removeMovie = (index) => {
         setMovie(movie.filter((_, i) => i !== index));
     }
+
+    const surpriseMe = async () => {
+        if(movie.length === 0) {
+            alert('Please add at least one movie.');
+            return;
+        }
+        const lastMovie = movie[movie.length - 1];
+
+        const res = await fetch(`${BASE_URL}/api/recommend/${lastMovie}`);
+        const data = await res.json();
+
+        setResults(data.recommendations);
+    };
+
 
     return (
         <>
@@ -51,16 +70,27 @@ const Home = () => {
                     <button className='add-btn' onClick={addMovie}>+ Add</button>
                 </div>
 
-                {/* Submit btn */}
             </div>
             <div className='container'>
-                <button className='surprise-btn'>Surprise Me</button>
+                {/* Submit btn */}
+                <button className='surprise-btn'
+                    onClick={surpriseMe}
+                >Surprise Me</button>
 
-                {/* Background image */}
-                <div className='img'>
-                    <img src="/pic1.png" alt="Pic" />
-                </div>
+                {results.length === 0 ? (
+                    // image when no results
+                    <div className="img">
+                        <img src="/pic1.png" alt="Pic" />
+                    </div>
+                ) : (
 
+                    // results
+                    <div className="results-grid">
+                        {results.map((movie, index) => (
+                            <MovieCard key={index} movie={movie} />
+                        ))}
+                    </div>
+                )}
             </div>
         </>
     )

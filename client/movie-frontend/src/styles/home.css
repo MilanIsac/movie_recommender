@@ -142,7 +142,7 @@
     height: auto;
     object-fit: contain;
     margin-top: 10vh;
-    margin-left: 6vw;
+    margin-left: 3vw;
 }
 
 .container {
@@ -168,4 +168,13 @@
         padding: 8px 18px;
         font-size: 13px;
     }
+}
+
+.results-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+    margin-top: 40px;
+    padding-bottom: 40px;
 }

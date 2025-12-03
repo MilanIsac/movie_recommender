@@ -8,7 +8,10 @@ const path = require("path");
 connectDB();
 
 const app = express();
-app.use(cors({ origin: "*" }));
+app.use(cors({ 
+  origin: "*",
+  methods: ['GET', 'POST']
+}));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../frontend")));
 
