@@ -8,6 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from difflib import get_close_matches
 import time
 from mangum import Mangum
+import numpy as np
+
+from pydantic import BaseModel
+class MovieRequest(BaseModel):
+    movies: list[str]
+
 
 load_dotenv()
 
@@ -41,13 +47,15 @@ except Exception as e:
 
 def run_scraping():
     from web_scraping import fetch_movies
+
     fetch_movies("popular", pages=5)
     print("Web scraping completed!")
-    
+
 
 def run_model_training():
     import model
-    print('Model training completed')
+
+    print("Model training completed")
 
 
 @app.get("/")
@@ -55,71 +63,123 @@ async def home():
     return {"message": "FastAPI Movie Recommendation Service is running!"}
 
 
-@app.get("/api/recommend/{title}")
-async def recommend(title: str):
-    title = title.strip().lower()
-    titles = movie_index["title"].tolist()
+# @app.get("/api/recommend/{title}")
+# async def recommend(title: str):
+#     title = title.strip().lower()
+#     titles = movie_index["title"].tolist()
 
-    if title not in titles:
-        suggestions = get_close_matches(title, titles, n=3, cutoff=0.4)
-        if suggestions:
-            best_match = suggestions[0]
-            print(f"Using closest match: {best_match}")
-            title = best_match
+#     if title not in titles:
+#         suggestions = get_close_matches(title, titles, n=3, cutoff=0.4)
+#         if suggestions:
+#             best_match = suggestions[0]
+#             print(f"Using closest match: {best_match}")
+#             title = best_match
+#         else:
+#             raise HTTPException(
+#                 status_code=404, detail=f"Movie '{title}' not found in dataset."
+#             )
+
+#     idx = movie_index[movie_index["title"] == title].index[0]
+
+#     sim_scores = list(enumerate(similarity[idx]))
+#     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[0:11]
+#     similar_movies = [movie_index.iloc[i]["title"] for i, _ in sim_scores]
+
+#     results = []
+#     for t in similar_movies:
+#         movie_doc = collection.find_one(
+#             {"title": {"$regex": f"^{t}$", "$options": "i"}}, {"_id": 0}
+#         )
+#         if movie_doc:
+#             poster = movie_doc.get("poster_path")
+#             if poster and not poster.startswith("http"):
+#                 movie_doc["poster_path"] = f"https://image.tmdb.org/t/p/w500{poster}"
+#             results.append(movie_doc)
+#         found_titles = {m["title"].lower() for m in results}
+#     for t in similar_movies:
+#         if t not in found_titles:
+#             results.append({"title": t, "overview": "Not available in DB"})
+
+#     return {"base_movie": title, "recommendations": results}
+
+@app.post("/api/recommend")
+async def recommend_movies(request: MovieRequest):
+    movie_list = request.movies
+
+    if len(movie_list) == 0:
+        raise HTTPException(status_code=400, detail="No movies provided")
+
+    global indices
+    indices = {title: i for i, title in enumerate(movie_index["title"])}
+
+    combined_scores = np.zeros(len(similarity))
+
+    for m in movie_list:
+        m = m.strip().lower()
+
+        if m not in indices:
+            continue
+
+        idx = indices[m]
+        sim_scores = list(enumerate(similarity[idx]))
+
+        for i, score in sim_scores:
+            combined_scores[i] += score
+
+    if combined_scores.sum() == 0:
+        raise HTTPException(status_code=404, detail="No matching movies found")
+
+    sorted_indices = combined_scores.argsort()[::-1]
+
+    filtered = [
+        i for i in sorted_indices
+        if movie_index.iloc[i]["title"] not in [m.lower() for m in movie_list]
+    ]
+
+    top_movies = movie_index.iloc[filtered][:10].to_dict(orient="records")
+
+    final_results = []
+    for movie in top_movies:
+        doc = collection.find_one({"title": {"$regex": f"^{movie['title']}$", "$options": "i"}}, {"_id": 0})
+
+        if doc:
+            if doc.get("poster_path") and not doc["poster_path"].startswith("http"):
+                doc["poster_path"] = f"https://image.tmdb.org/t/p/w500{doc['poster_path']}"
+            final_results.append(doc)
         else:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Movie '{title}' not found in dataset."
-            )
+            final_results.append(movie)
 
-    idx = movie_index[movie_index["title"] == title].index[0]
-
-    sim_scores = list(enumerate(similarity[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[0:11]
-    similar_movies = [movie_index.iloc[i]["title"] for i, _ in sim_scores]
+    return {
+        "base_movies": movie_list,
+        "recommendations": final_results
+    }
 
 
-    results = []
-    for t in similar_movies:
-        movie_doc = collection.find_one(
-            {"title": {"$regex": f"^{t}$", "$options": "i"}}, {"_id": 0}
-        )
-        if movie_doc:
-            poster = movie_doc.get("poster_path")
-            if poster and not poster.startswith("http"):
-                movie_doc["poster_path"] = f"https://image.tmdb.org/t/p/w500{poster}"
-            results.append(movie_doc)
-        found_titles = {m["title"].lower() for m in results}
-    for t in similar_movies:
-        if t not in found_titles:
-            results.append({"title": t, "overview": "Not available in DB"})
 
-    return {"base_movie": title, "recommendations": results}
-
-
-@app.post('/api/refresh')
-async def refresh(background_tasks : BackgroundTasks):
+@app.post("/api/refresh")
+async def refresh(background_tasks: BackgroundTasks):
     try:
         background_tasks.add_task(run_scraping)
-        return { 'msg' : 'fetching data started' }
-    
+        return {"msg": "fetching data started"}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail='Error fetching data')
-    
-    
-@app.post('/api/run-training')
+        raise HTTPException(status_code=500, detail="Error fetching data")
+
+
+@app.post("/api/run-training")
 async def run_training(background_tasks: BackgroundTasks):
     try:
         import model
+
         time.sleep(2)
         background_tasks.add_task(run_model_training)
         background_tasks.add_task(model_reload)
-        return { 'msg' : 'model training and reload started' }
-    
+        return {"msg": "model training and reload started"}
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail='Error training model')
-    
-    
+        raise HTTPException(status_code=500, detail="Error training model")
+
+
 async def model_reload():
     global vectorizer, similarity, movie_index
     try:
@@ -130,6 +190,6 @@ async def model_reload():
         print("Model reloaded successfully")
     except Exception as e:
         print("Error reloading model:", e)
-        
-        
+
+
 handler = Mangum(app)

@@ -22,16 +22,27 @@ const Home = () => {
     }
 
     const surpriseMe = async () => {
-        if(movie.length === 0) {
-            alert('Please add at least one movie.');
+        if (movie.length === 0) {
+            alert("Please add at least one movie!");
             return;
         }
-        const lastMovie = movie[movie.length - 1];
-
-        const res = await fetch(`${BASE_URL}/api/recommend/${lastMovie}`);
-        const data = await res.json();
-
-        setResults(data.recommendations);
+        try {
+            const res = await fetch(`${BASE_URL}/api/recommend`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ movies: movie })
+            });
+            if (!res.ok) {
+                const errData = await res.text();
+                console.error("Backend error:", errData);
+                throw new Error("Server returned an error");
+            }
+            const data = await res.json();
+            setResults(data.recommendations);
+        }
+        catch (error) {
+            console.error("Error fetching recommendations:", error);
+        }
     };
 
 
