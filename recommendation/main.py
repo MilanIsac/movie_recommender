@@ -11,6 +11,8 @@ from mangum import Mangum
 import numpy as np
 
 from pydantic import BaseModel
+
+
 class MovieRequest(BaseModel):
     movies: list[str]
 
@@ -102,6 +104,7 @@ async def home():
 
 #     return {"base_movie": title, "recommendations": results}
 
+
 @app.post("/api/recommend")
 async def recommend_movies(request: MovieRequest):
     movie_list = request.movies
@@ -109,51 +112,82 @@ async def recommend_movies(request: MovieRequest):
     if len(movie_list) == 0:
         raise HTTPException(status_code=400, detail="No movies provided")
 
-    global indices
-    indices = {title: i for i, title in enumerate(movie_index["title"])}
+    titles = movie_index["title"].tolist()
+    indices = {title: i for i, title in enumerate(titles)}
 
     combined_scores = np.zeros(len(similarity))
+    matched_movies = []
 
     for m in movie_list:
         m = m.strip().lower()
 
-        if m not in indices:
-            continue
+        if m in indices:
+            matched_movies.append(m)
+        else:
+            close = get_close_matches(m, titles, n=1, cutoff=0.4)
+            if close:
+                print(f"Using fuzzy match: {m} → {close[0]}")
+                matched_movies.append(close[0])
+            else:
+                print(f"No match for: {m}")
+                continue
 
-        idx = indices[m]
+        idx = indices[matched_movies[-1]]
         sim_scores = list(enumerate(similarity[idx]))
 
         for i, score in sim_scores:
             combined_scores[i] += score
 
     if combined_scores.sum() == 0:
-        raise HTTPException(status_code=404, detail="No matching movies found")
+        return {
+            "matched_movies": [],
+            "recommendations": []
+        }
+
 
     sorted_indices = combined_scores.argsort()[::-1]
-
-    filtered = [
-        i for i in sorted_indices
-        if movie_index.iloc[i]["title"] not in [m.lower() for m in movie_list]
-    ]
-
+    filtered = [i for i in sorted_indices if titles[i] not in matched_movies]
     top_movies = movie_index.iloc[filtered][:10].to_dict(orient="records")
 
+    GENRE_MAP = {
+        28: "Action", 12: "Adventure", 16: "Animation", 35: "Comedy",
+        80: "Crime", 99: "Documentary", 18: "Drama", 10751: "Family",
+        14: "Fantasy", 36: "History", 27: "Horror", 10402: "Music",
+        9648: "Mystery", 10749: "Romance", 878: "Science Fiction",
+        10770: "TV Movie", 53: "Thriller", 10752: "War", 37: "Western"
+    }
+
     final_results = []
+
     for movie in top_movies:
-        doc = collection.find_one({"title": {"$regex": f"^{movie['title']}$", "$options": "i"}}, {"_id": 0})
+        title = movie["title"]
+
+        doc = collection.find_one(
+            {"title": {"$regex": f"^{title}$", "$options": "i"}}, {"_id": 0}
+        )
 
         if doc:
             if doc.get("poster_path") and not doc["poster_path"].startswith("http"):
                 doc["poster_path"] = f"https://image.tmdb.org/t/p/w500{doc['poster_path']}"
+
+            if not doc.get("overview"):
+                doc["overview"] = "No overview available."
+
+            genre_ids = doc.get("genre_ids", [])
+            valid_genres = [GENRE_MAP.get(g) for g in genre_ids if GENRE_MAP.get(g)]
+            doc["genres"] = valid_genres if valid_genres else ["Unknown"]
+
             final_results.append(doc)
+
         else:
+            movie["overview"] = "Not available in DB"
+            movie["genres"] = ["Unknown"]
             final_results.append(movie)
 
     return {
-        "base_movies": movie_list,
+        "matched_movies": matched_movies,
         "recommendations": final_results
     }
-
 
 
 @app.post("/api/refresh")

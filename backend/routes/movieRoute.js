@@ -19,23 +19,33 @@ router.get("/", async (req, res) => {
 router.post("/recommend", async (req, res) => {
   try {
     const { movies } = req.body;
-
     if (!movies || !Array.isArray(movies) || movies.length === 0) {
       return res.status(400).json({ error: "No movies provided" });
     }
 
-    const response = await axios.post(`${FASTAPI_URL}/recommend`, {
-      movies: movies,
-    });
+    // Debug: log FASTAPI_URL and request body
+    console.log("Forwarding to FastAPI:", FASTAPI_URL + "/recommend");
+    console.log("Request body:", movies);
 
-    res.json(response.data);
+    const response = await axios.post(`${FASTAPI_URL}/recommend`, { movies }, { timeout: 20000 });
+
+    return res.json(response.data);
 
   }
-  catch (error) {
-    console.error("Error fetching recommendations:", error.message);
-    res.status(500).json({ error: "FastAPI recommendation failed" });
+  catch (err) {
+    console.error("Axios error message:", err.message);
+    if (err.response) {
+      console.error("FastAPI response status:", err.response.status);
+      console.error("FastAPI response data:", err.response.data);
+      return res.status(502).json({ error: "FastAPI error", detail: err.response.data });
+    }
+    else {
+      console.error("No response from FastAPI (connection error or timeout).");
+      return res.status(502).json({ error: "FastAPI unreachable", detail: err.message });
+    }
   }
 });
+
 
 
 router.post("/refresh", async (req, res) => {

@@ -89,19 +89,23 @@ const Home = () => {
                 >Surprise Me</button>
 
                 {results.length === 0 ? (
-                    // image when no results
-                    <div className="img">
-                        <img src="/pic1.png" alt="Pic" />
-                    </div>
+                    movie.length === 0 ? (
+                        <div className="img">
+                            <img src="/pic1.png" alt="Pic" />
+                        </div>
+                    ) : (
+                        <div className="no-results">
+                            <p>No recommendations found for your selection.</p>
+                        </div>
+                    )
                 ) : (
-
-                    // results
                     <div className="results-grid">
                         {results.map((movie, index) => (
                             <MovieCard key={index} movie={movie} />
                         ))}
                     </div>
                 )}
+
             </div>
         </>
     )
