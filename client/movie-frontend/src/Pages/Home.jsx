@@ -7,6 +7,9 @@ const Home = () => {
     const [movie, setMovie] = useState([]);
     const [input, setInput] = useState('');
     const [results, setResults] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [searched, setSearched] = useState(false);
+
 
     const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -26,6 +29,12 @@ const Home = () => {
             alert("Please add at least one movie!");
             return;
         }
+
+        setLoading(true);
+        setSearched(true);
+
+        await new Promise(res => setTimeout(res, 300));
+
         try {
             const res = await fetch(`${BASE_URL}/api/recommend`, {
                 method: "POST",
@@ -42,6 +51,9 @@ const Home = () => {
         }
         catch (error) {
             console.error("Error fetching recommendations:", error);
+        }
+        finally {
+            setLoading(false);
         }
     };
 
@@ -88,16 +100,19 @@ const Home = () => {
                     onClick={surpriseMe}
                 >Surprise Me</button>
 
-                {results.length === 0 ? (
-                    movie.length === 0 ? (
-                        <div className="img">
-                            <img src="/pic1.png" alt="Pic" />
-                        </div>
-                    ) : (
-                        <div className="no-results">
-                            <p>No recommendations found for your selection.</p>
-                        </div>
-                    )
+                {loading ? (
+                    <div className="loading">
+                        <div className="spinner"></div>
+                        <p>Fetching recommendations...</p>
+                    </div>
+                ) : !searched ? (
+                    <div className="img">
+                        <img src="/pic1.png" alt="Pic" />
+                    </div>
+                ) : results.length === 0 ? (
+                    <div className="no-results">
+                        <p>No recommendations found for your selection.</p>
+                    </div>
                 ) : (
                     <div className="results-grid">
                         {results.map((movie, index) => (
@@ -105,6 +120,7 @@ const Home = () => {
                         ))}
                     </div>
                 )}
+
 
             </div>
         </>
