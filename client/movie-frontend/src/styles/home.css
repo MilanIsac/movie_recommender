@@ -144,6 +144,11 @@
     object-fit: contain;
     margin-top: 10vh;
     margin-left: 3vw;
+    animation: fadeIn 1s forwards ease-in-out;
+}
+
+@keyframes fadeIn {
+    to { opacity: 1; }
 }
 
 .container {

@@ -66,3 +66,12 @@
         height: 300px;
     }
 }
+
+.movie-poster {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+.movie-poster.lazy-loaded {
+    opacity: 1;
+}

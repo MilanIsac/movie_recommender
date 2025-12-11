@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '../styles/home.css'
 import MovieCard from '../Components/MovieCard';
 
@@ -9,6 +9,16 @@ const Home = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [searched, setSearched] = useState(false);
+    const [bgImage, setBgImage] = useState("");
+
+    useEffect(() => {
+        const bgImages = [
+            'images/pic1.png',
+        ];
+
+        const idx = Math.floor(Math.random() * bgImages.length);
+        setBgImage(bgImages[idx]);
+    }, []);
 
 
     const BASE_URL = import.meta.env.VITE_BASE_URL;
@@ -107,7 +117,7 @@ const Home = () => {
                     </div>
                 ) : !searched ? (
                     <div className="img">
-                        <img src="/pic1.png" alt="Pic" />
+                        <img src={bgImage} alt="Pic" loading='lazy' />
                     </div>
                 ) : results.length === 0 ? (
                     <div className="no-results">
