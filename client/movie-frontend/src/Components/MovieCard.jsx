@@ -1,16 +1,23 @@
-import React, { useState } from 'react'
-import '../styles/card.css'
+import React, { useState } from "react";
+import "../styles/card.css";
 
 const MovieCard = ({ movie }) => {
-
     const [loaded, setLoaded] = useState(false);
 
+    const poster = movie.poster_path && movie.poster_path.trim() !== ""
+        ? movie.poster_path
+        : "https://placehold.co/300x450?text=No+Image";
+    const genres = movie.genres?.map(g => g.name || g).join(", ") || "Unknown";
+
     return (
-        <div className='movie-card'>
-            <img src={movie.poster_path || 'https://placehold.co/300x450?text=No+Image'}
-                alt="Movie Image"
+        <div className="movie-card">
+
+            {/* Poster */}
+            <img
+                src={poster}
+                alt={movie.title}
                 className={`movie-poster ${loaded ? "lazy-loaded" : ""}`}
-                loading='lazy'
+                loading="lazy"
                 onLoad={() => setLoaded(true)}
                 onError={(e) => {
                     e.target.src = "https://placehold.co/300x450?text=No+Image";
@@ -18,23 +25,21 @@ const MovieCard = ({ movie }) => {
                 }}
             />
 
-            <h3 className='movie-title'>{movie.title}</h3>
+            {/* Overlay Content (hidden until hover) */}
+            <div className="movie-overlay">
+                <h3>{movie.title}</h3>
 
-            <p className="movie-genres">
-                <strong>Genres:</strong>{" "}
-                {movie.genres?.map(g => g.name).join(", ") || "Unknown"}
-            </p>
+                <p className="genres">
+                    <strong>Genres:</strong> {genres}
+                </p>
 
-            {movie.tagline && (
-                <p className="movie-tagline">“{movie.tagline}”</p>
-            )}
-
-            <p className="movie-overview">
-                {movie.overview || "No overview available."}
-            </p>
+                <p className="overview">
+                    {movie.overview || "No overview available."}
+                </p>
+            </div>
 
         </div>
-    )
-}
+    );
+};
 
-export default MovieCard
+export default MovieCard;

@@ -13,7 +13,7 @@ const Home = () => {
 
     useEffect(() => {
         const bgImages = [
-            'images/pic1.png',
+            '/images/pic1.png',
         ];
 
         const idx = Math.floor(Math.random() * bgImages.length);
@@ -117,7 +117,9 @@ const Home = () => {
                     </div>
                 ) : !searched ? (
                     <div className="img">
-                        <img src={bgImage} alt="Pic" loading='lazy' />
+                        {bgImage ? (
+                            <img src={bgImage} alt="Pic" loading="lazy" />
+                        ) : null}
                     </div>
                 ) : results.length === 0 ? (
                     <div className="no-results">
@@ -130,7 +132,6 @@ const Home = () => {
                         ))}
                     </div>
                 )}
-
 
             </div>
         </>
