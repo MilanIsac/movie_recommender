@@ -23,11 +23,10 @@ router.post("/recommend", async (req, res) => {
       return res.status(400).json({ error: "No movies provided" });
     }
 
-    // Debug: log FASTAPI_URL and request body
     console.log("Forwarding to FastAPI:", FASTAPI_URL + "/recommend");
     console.log("Request body:", movies);
 
-    const response = await axios.post(`${FASTAPI_URL}/recommend`, { movies }, { timeout: 20000 });
+    const response = await axios.post(`${FASTAPI_URL}/api/recommend`, { movies }, { timeout: 20000 });
 
     return res.json(response.data);
 
@@ -50,7 +49,7 @@ router.post("/recommend", async (req, res) => {
 
 router.post("/refresh", async (req, res) => {
   try {
-    const response = await axios.post(`${FASTAPI_URL}/refresh`);
+    const response = await axios.post(`${FASTAPI_URL}/api/refresh`);
     res.json(response.data);
   }
   catch (err) {
@@ -61,7 +60,7 @@ router.post("/refresh", async (req, res) => {
 
 router.post("/run-training", async (req, res) => {
   try {
-    const response = await axios.post(`${FASTAPI_URL}/run-training`);
+    const response = await axios.post(`${FASTAPI_URL}/api/run-training`);
     res.json(response.data);
   }
   catch (err) {

@@ -34,7 +34,8 @@ const MovieCard = ({ movie }) => {
                 </p>
 
                 <p className="overview">
-                    {movie.overview || "No overview available."}
+                    <strong>Overview:</strong> &nbsp;
+                    <i>{movie.overview || "No overview available."}</i>
                 </p>
             </div>
 
