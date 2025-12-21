@@ -5,3 +5,5 @@ recommendation/venv/
 recommendation/__pycache__/
 recommendation/package/
 recommendation/recomendation.zip
+client/movie-frontend/node_modules/
+client/movie-frontend/public/
