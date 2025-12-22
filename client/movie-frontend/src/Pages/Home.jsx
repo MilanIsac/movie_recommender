@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import '../styles/home.css'
 import MovieCard from '../Components/MovieCard';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
+
 
 const Home = () => {
 
@@ -112,7 +115,9 @@ const Home = () => {
                             onChange={(e) => setInput(e.target.value)}
                         />
                     </div>
-                    <button className='add-btn' onClick={addMovie}>+ Add</button>
+                    <button className='add-btn' onClick={addMovie}>
+                        <FontAwesomeIcon icon={faPlus} />Add
+                    </button>
                 </div>
 
             </div>
@@ -120,32 +125,32 @@ const Home = () => {
                 {/* Submit btn */}
                 <button className='surprise-btn'
                     onClick={surpriseMe}
-                >Surprise Me</button>
+                ><FontAwesomeIcon icon={faMagnifyingGlass} />&nbsp;Surprise Me</button>
 
-                {loading ? (
-                    <div className="loading">
-                        <div className="spinner"></div>
-                        <p>Fetching recommendations...</p>
-                    </div>
-                ) : !searched ? (
-                    <div className="img">
-                        {bgImage ? (
-                            <img src={bgImage} alt="Pic" loading="lazy" />
-                        ) : null}
-                    </div>
-                ) : results.length === 0 ? (
-                    <div className="no-results">
-                        <p>No recommendations found for your selection.</p>
-                    </div>
-                ) : (
-                    <div className="results-grid">
-                        {results.map((movie, index) => (
-                            <MovieCard key={index} movie={movie} />
-                        ))}
-                    </div>
-                )}
+            {loading ? (
+                <div className="loading">
+                    <div className="spinner"></div>
+                    <p>Fetching recommendations...</p>
+                </div>
+            ) : !searched ? (
+                <div className="img">
+                    {bgImage ? (
+                        <img src={bgImage} alt="Pic" loading="lazy" />
+                    ) : null}
+                </div>
+            ) : results.length === 0 ? (
+                <div className="no-results">
+                    <p>No recommendations found for your selection.</p>
+                </div>
+            ) : (
+                <div className="results-grid">
+                    {results.map((movie, index) => (
+                        <MovieCard key={index} movie={movie} />
+                    ))}
+                </div>
+            )}
 
-            </div>
+        </div >
         </>
     )
 }
