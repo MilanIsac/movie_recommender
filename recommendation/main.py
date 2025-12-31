@@ -11,6 +11,7 @@ from mangum import Mangum
 import numpy as np
 
 from pydantic import BaseModel
+from scheduler import start_scheduler
 
 
 class MovieRequest(BaseModel):
@@ -225,5 +226,7 @@ async def model_reload():
     except Exception as e:
         print("Error reloading model:", e)
 
+
+start_scheduler()
 
 handler = Mangum(app)
