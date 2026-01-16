@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  fastapi:
+    build: ./recommendation
+    container_name: fastapi
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./recommendation/.env
+
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - fastapi
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
