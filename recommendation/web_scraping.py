@@ -1,73 +1,42 @@
-from pymongo import MongoClient
-import requests
 import os
-import time
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.retry import Retry
+import requests
+from pymongo import MongoClient
 from dotenv import load_dotenv
+from datetime import datetime
 
 load_dotenv()
 
-API_KEY = os.getenv("TMDB_API_KEY")
-if not API_KEY:
-    raise ValueError("TMDB_API_KEY environment variable is not set")
+TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
+MONGO_COLLECTION = os.getenv("MONGO_COLLECTION")
 
-client = MongoClient(os.getenv("MONGO_URI"))
-db = client[os.getenv("MONGO_DB")]
-collection = db[os.getenv("MONGO_COLLECTION")]
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
+collection = db[MONGO_COLLECTION]
 
-session = requests.Session()
-retry = Retry(
-    total=5,
-    backoff_factor=1,
-    status_forcelist=[500, 502, 503, 504]
-)
-adapter = HTTPAdapter(max_retries=retry)
-session.mount("http://", adapter)
-session.mount("https://", adapter)
 
-def fetch_movies(endpoint, pages=5, delay=0.5):
-    inserted_count = 0
+def fetch_movies(category="popular", pages=5):
+    print(f"📥 Fetching TMDB movies: {category}")
+
     for page in range(1, pages + 1):
-        url = f"https://api.themoviedb.org/3/movie/{endpoint}?api_key={API_KEY}&language=en-US&page={page}"
-        try:
-            response = session.get(url, timeout=10).json()
-            movies = response.get("results", [])
-            
-            for movie in movies:
-                
-                movie_doc = {
-                    "id": movie["id"],
-                    "title": movie["title"],
-                    "overview": movie.get("overview", ""),
-                    "genre_ids": movie.get("genre_ids", []),
-                    "poster_path": f"https://image.tmdb.org/t/p/w500{movie['poster_path']}" if movie.get("poster_path") else None,
-                    "release_date": movie.get("release_date", ""),
-                    "vote_average": movie.get("vote_average", 0),
-                    "vote_count": movie.get("vote_count", 0)
-                }
-                
-                result = collection.update_one(
-                    {"id": movie_doc["id"]},
-                    {"$set": movie_doc},
-                    upsert=True
-                )
-                if result.upserted_id:
-                    inserted_count += 1
-                    
-                    
-            time.sleep(delay)
-        except Exception as e:
-            print(f"Error fetching page {page}: {e}")
-    return inserted_count
+        url = f"https://api.themoviedb.org/3/movie/{category}"
+        params = {
+            "api_key": TMDB_API_KEY,
+            "page": page
+        }
 
-if __name__ == "__main__":
-    inserted_total = 0
-    inserted_total += fetch_movies("popular", pages=10)
-    inserted_total += fetch_movies("now_playing", pages=10)
-    inserted_total += fetch_movies("upcoming", pages=10)
+        res = requests.get(url, params=params)
+        res.raise_for_status()
 
-    print(f"Inserted {inserted_total} new movies into MongoDB")
-    print("Movies in DB:", collection.count_documents({}))
-    latest_movies = list(collection.find().sort("release_date", -1).limit(5))
+        for movie in res.json().get("results", []):
+            movie["source"] = "tmdb"
+            movie["updated_at"] = datetime.utcnow()
 
+            collection.update_one(
+                {"id": movie["id"]},
+                {"$set": movie},
+                upsert=True
+            )
+
+    print("✅ TMDB fetch completed")

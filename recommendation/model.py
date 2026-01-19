@@ -1,51 +1,67 @@
 import os
-from pymongo import MongoClient
+import pickle
 import pandas as pd
+from pymongo import MongoClient
+from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import pickle
-from dotenv import load_dotenv
 
 load_dotenv()
 
-client = MongoClient(os.getenv("MONGO_URI"))
-db = client[os.getenv("MONGO_DB")]
-collection = db[os.getenv("MONGO_COLLECTION")]
+MONGO_URI = os.getenv("MONGO_URI")
+MONGO_DB = os.getenv("MONGO_DB")
+MONGO_COLLECTION = os.getenv("MONGO_COLLECTION")
 
-print("Connected to MongoDB")
+client = MongoClient(MONGO_URI)
+db = client[MONGO_DB]
+collection = db[MONGO_COLLECTION]
 
-movies = list(collection.find())
-df = pd.DataFrame(movies)
-print(f"Loaded {len(df)} movies")
-
-def combine_features(row):
-    overview = row.get("overview", "")
-    genres = ""
-    if isinstance(row.get("genres"), list):
-        genres = " ".join([g["name"] for g in row["genres"] if isinstance(g, dict)])
-    elif isinstance(row.get("genre_ids"), list):
-        genres = " ".join(map(str, row["genre_ids"]))
-    return f"{overview} {genres}"
-
-df["combined"] = df.apply(combine_features, axis=1)
-
-df = df.dropna(subset=["combined"])
-
-print("Movies loaded for training:", len(df))
-print(df.tail()[["title", "release_date"]])
+MODEL_DIR = "model"
+os.makedirs(MODEL_DIR, exist_ok=True)
 
 
-print("Vectorizing text...")
-vectorizer = TfidfVectorizer(stop_words="english", max_features=5000)
-tfidf_matrix = vectorizer.fit_transform(df["combined"])
+def build_text(row):
+    overview = row.get("overview", "") or ""
+    genres = row.get("genres", [])
+    genre_text = ""
 
-print("Computing similarity...")
-similarity_matrix = cosine_similarity(tfidf_matrix)
+    if isinstance(genres, list):
+        genre_text = " ".join(
+            g["name"] if isinstance(g, dict) else str(g) for g in genres
+        )
 
-os.makedirs("model", exist_ok=True)
-pickle.dump(vectorizer, open("model/vectorizer.pkl", "wb"))
-pickle.dump(similarity_matrix, open("model/similarity.pkl", "wb"))
-df[["id", "title"]].to_csv("model/movie_index.csv", index=False)
+    return f"{overview} {genre_text}".strip()
 
-print("Model training complete!")
-print("Files saved in ./model/")
+
+def train_model():
+    print("🔄 Loading movies from MongoDB...")
+    movies = list(collection.find({}, {"_id": 0}))
+
+    if not movies:
+        raise ValueError("No movies found in DB")
+
+    df = pd.DataFrame(movies)
+    df["title"] = df["title"].str.lower().str.strip()
+    df["combined"] = df.apply(build_text, axis=1)
+    df = df[df["combined"].str.len() > 0].reset_index(drop=True)
+
+    print(f"🎬 Training on {len(df)} movies")
+
+    vectorizer = TfidfVectorizer(
+        stop_words="english",
+        max_features=6000,
+        ngram_range=(1, 2)
+    )
+
+    tfidf = vectorizer.fit_transform(df["combined"])
+    similarity = cosine_similarity(tfidf)
+
+    pickle.dump(vectorizer, open(f"{MODEL_DIR}/vectorizer.pkl", "wb"))
+    pickle.dump(similarity, open(f"{MODEL_DIR}/similarity.pkl", "wb"))
+    df[["id", "title"]].to_csv(f"{MODEL_DIR}/movie_index.csv", index=False)
+
+    print("✅ Model training completed")
+
+
+if __name__ == "__main__":
+    train_model()

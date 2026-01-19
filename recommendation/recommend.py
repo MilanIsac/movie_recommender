@@ -1,18 +1,45 @@
 import pickle
 import pandas as pd
+from difflib import get_close_matches
 
 vectorizer = pickle.load(open("model/vectorizer.pkl", "rb"))
-similarity_matrix = pickle.load(open("model/similarity.pkl", "rb"))
-movies = pd.read_csv("model/movie_index.csv")
+similarity = pickle.load(open("model/similarity.pkl", "rb"))
+movie_index = pd.read_csv("model/movie_index.csv")
 
-def recommend(title, top_n=5):
-    title = title.strip().lower()
-    movies["title_lower"] = movies["title"].str.strip().str.lower()
-    if title not in movies["title"].values:
-        return {"error": f"Movie '{title}' not found."}
-    
-    idx = movies[movies["title"] == title].index[0]
-    sim_scores = list(enumerate(similarity_matrix[idx]))
-    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)[0:top_n+1]
-    recommendations = [movies.iloc[i]["title"] for i, _ in sim_scores]
-    return recommendations
+movie_index["title"] = movie_index["title"].str.lower().str.strip()
+titles = movie_index["title"].tolist()
+indices = {t: i for i, t in enumerate(titles)}
+
+
+def recommend_movies(movie_list, top_n=10):
+    combined_scores = [0.0] * len(titles)
+    matched = []
+
+    for m in movie_list:
+        m = m.lower().strip()
+        if m not in indices:
+            close = get_close_matches(m, titles, n=1, cutoff=0.4)
+            if not close:
+                continue
+            m = close[0]
+
+        matched.append(m)
+        idx = indices[m]
+
+        for i, score in enumerate(similarity[idx]):
+            combined_scores[i] += score
+
+    ranked = sorted(
+        enumerate(combined_scores),
+        key=lambda x: x[1],
+        reverse=True
+    )
+
+    results = []
+    for i, _ in ranked:
+        if titles[i] not in matched:
+            results.append(titles[i])
+        if len(results) == top_n:
+            break
+
+    return results
